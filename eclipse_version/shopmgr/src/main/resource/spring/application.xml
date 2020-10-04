@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:p="http://www.springframework.org/schema/p"
+       xmlns:c="http://www.springframework.org/schema/c"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:util="http://www.springframework.org/schema/util"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+      				  http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+      				  http://www.springframework.org/schema/tx
+      				  http://www.springframework.org/schema/tx/spring-tx-4.0.xsd
+      				  http://www.springframework.org/schema/context
+      				  http://www.springframework.org/schema/context/spring-context-4.0.xsd
+      				  ">
+
+    <!-- 配置一个扫描器 -->
+    <context:component-scan base-package="com.fitsoft.shop"/>
+
+    <!-- 配置数据源的配置 C3P0作为数据源 -->
+    <bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource" destroy-method="close"/>
+
+    <!-- 配置连接工厂sqlSessionFactory
+        Spring + Mybatis
+        -->
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean" p:dataSource-ref="dataSource">
+        <!-- 扫描类型，为类型配置别名，默认配置的别名就是类名
+             以后映射文件中无需写类型的全限名
+        -->
+        <property name="typeAliasesPackage" value="com.fitsoft.shop.bean"/>
+    </bean>
+
+    <!-- 配置扫描数据访问层接口的路径，为数据访问层接口做实现类对象 -->
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer" p:sqlSessionFactoryBeanName="sqlSessionFactory">
+        <!-- 配置数据访问接口：采用包扫描的方式到基础包下扫描所有的类，作为MyBatis2的数据访问接口，
+            并创建这些类的代理对象，创建出来后会把这些代理对象交给Spring容器管理，bean的id名默认为接口的类名前面首字母小写
+           多个包之间用;分隔 -->
+        <property name="basePackage" value="com.fitsoft.shop.repository"/>
+    </bean>
+
+    <!-- 配置事务管理器 -->
+    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager" p:dataSource-ref="dataSource"/>
+
+    <!-- 申明式事务，使用事务注解的方式去控制业务层的事务 开启annotation注解事务 -->
+    <tx:annotation-driven transaction-manager="transactionManager"/>
+</beans>
